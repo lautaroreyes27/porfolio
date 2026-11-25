@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ persona.nombre_completo }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  {# POLIMORFISMO: este macro sirve para Educacion y Experiencia (y Proyecto).
+     Llama a los mismos métodos y cada objeto responde a su manera. #}
+  {% macro tarjeta(item) %}
+    <article class="item">
+      <div class="item-cabecera">
+        <h3>{{ item.titulo_visible() }}</h3>
+        {% if item.periodo() %}<span class="periodo">{{ item.periodo() }}</span>{% endif %}
+      </div>
+      <p class="sub">{{ item.subtitulo() }}</p>
+      {% if item.descripcion %}<p class="desc">{{ item.descripcion }}</p>{% endif %}
+      {{ caller() if caller else "" }}
+    </article>
+  {% endmacro %}
+
+  <main>
+    <header>
+      <h1>{{ persona.nombre_completo }}</h1>
+      <p class="titulo">{{ persona.titulo }}</p>
+      <ul class="contacto">
+        {% if persona.ciudad %}<li>{{ persona.ciudad }}</li>{% endif %}
+        {% if persona.email %}<li><a href="mailto:{{ persona.email }}">{{ persona.email }}</a></li>{% endif %}
+        {% if persona.telefono %}<li>{{ persona.telefono }}</li>{% endif %}
+      </ul>
+      <p class="resumen">{{ persona.resumen }}</p>
+      {% if persona.objetivo %}<p class="resumen"><strong>Objetivo:</strong> {{ persona.objetivo }}</p>{% endif %}
+      <a class="boton" href="{{ url_for('static', filename=persona.cv_pdf or 'docs/CV_Lautaro_Reyes.pdf') }}" download>Descargar CV</a>
+    </header>
+
+    {% if educacion %}
+    <section>
+      <h2>Educación</h2>
+      {% for item in educacion %}{{ tarjeta(item) }}{% endfor %}
+    </section>
+    {% endif %}
+
+    {% if experiencia %}
+    <section>
+      <h2>Experiencia</h2>
+      {% for item in experiencia %}{{ tarjeta(item) }}{% endfor %}
+    </section>
+    {% endif %}
+
+    {% if tecnologias %}
+    <section>
+      <h2>Tecnologías</h2>
+      {% for categoria, lista in tecnologias.items() %}
+        <div class="categoria">
+          <h3>{{ categoria }}</h3>
+          {% for t in lista %}
+            <div class="tec">
+              <span>{{ t.nombre }}</span>
+              <div class="barra"><span style="width: {{ t.nivel }}%"></span></div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if habilidades_blandas %}
+    <section>
+      <h2>Habilidades blandas</h2>
+      <ul class="lista">
+        {% for h in habilidades_blandas %}<li>{{ h }}</li>{% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if proyectos %}
+    <section>
+      <h2>Proyectos</h2>
+      {% for p in proyectos %}
+        {% call tarjeta(p) %}
+          {% if p.url_repo or p.url_demo %}
+          <p class="enlaces">
+            {% if p.url_repo %}<a href="{{ p.url_repo }}">Código</a>{% endif %}
+            {% if p.url_demo %}<a href="{{ p.url_demo }}">Demo</a>{% endif %}
+          </p>
+          {% endif %}
+        {% endcall %}
+      {% endfor %}
+    </section>
+    {% endif %}
+  </main>
+</body>
+</html>
